@@ -18,13 +18,13 @@ import brotliSize from 'brotli-size';
 import prettyBytes from 'pretty-bytes';
 import typescript from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
-import svgr from '@svgr/rollup';
+// import svgr from '@svgr/rollup';
 import smartAsset from 'rollup-plugin-smart-asset';
 import logError from './log-error';
 import { readFile, isDir, isFile, stdout, stderr, isTruthy } from './utils';
 import camelCase from 'camelcase';
 
-const removeScope = name => name.replace(/^@.*\//, '');
+const removeScope = (name) => name.replace(/^@.*\//, '');
 
 // Convert booleans and int define= values to literals.
 // This is more intuitive than `microbundle --define A=1` producing A="1".
@@ -72,7 +72,7 @@ function normalizeMinifyOptions(minifyOptions) {
 // Parses values of the form "$=jQuery,React=react" into key-value object pairs.
 const parseMappingArgument = (globalStrings, processValue) => {
 	const globals = {};
-	globalStrings.split(',').forEach(globalString => {
+	globalStrings.split(',').forEach((globalString) => {
 		let [key, value] = globalString.split('=');
 		if (processValue) {
 			const r = processValue(value, key);
@@ -90,8 +90,8 @@ const parseMappingArgument = (globalStrings, processValue) => {
 };
 
 // Parses values of the form "$=jQuery,React=react" into key-value object pairs.
-const parseMappingArgumentAlias = aliasStrings => {
-	return aliasStrings.split(',').map(str => {
+const parseMappingArgumentAlias = (aliasStrings) => {
+	return aliasStrings.split(',').map((str) => {
 		let [key, value] = str.split('=');
 		return { find: key, replacement: value };
 	});
@@ -106,9 +106,9 @@ const EXTENSIONS = [
 	'.es6',
 	'.es',
 	'.mjs',
-	'.jpg',
-	'.png',
-	'.svg',
+	// '.jpg',
+	// '.png',
+	// '.svg',
 ];
 
 const WATCH_OPTS = {
@@ -228,7 +228,7 @@ export default async function microbundle(inputOptions) {
 					)}:`,
 				),
 			);
-			steps.map(options => {
+			steps.map((options) => {
 				watch(
 					Object.assign(
 						{
@@ -237,14 +237,14 @@ export default async function microbundle(inputOptions) {
 						},
 						options.inputOptions,
 					),
-				).on('event', e => {
+				).on('event', (e) => {
 					if (e.code === 'FATAL') {
 						return reject(e.error);
 					} else if (e.code === 'ERROR') {
 						logError(e.error);
 					}
 					if (e.code === 'END') {
-						options._sizeInfo.then(text => {
+						options._sizeInfo.then((text) => {
 							stdout(`Wrote ${text.trim()}`);
 						});
 						if (typeof onBuild === 'function') {
@@ -258,7 +258,7 @@ export default async function microbundle(inputOptions) {
 
 	let cache;
 	let out = await series(
-		steps.map(config => async () => {
+		steps.map((config) => async () => {
 			const { inputOptions, outputOptions } = config;
 			inputOptions.cache = cache;
 			let bundle = await rollup(inputOptions);
@@ -270,8 +270,9 @@ export default async function microbundle(inputOptions) {
 
 	return (
 		blue(
-			`Build "${options.name}" to ${relative(cwd, dirname(options.output)) ||
-				'.'}:`,
+			`Build "${options.name}" to ${
+				relative(cwd, dirname(options.output)) || '.'
+			}:`,
 		) +
 		'\n   ' +
 		out.join('\n   ')
@@ -306,7 +307,7 @@ async function getConfigFromPkgJson(cwd) {
 	}
 }
 
-const safeVariableName = name =>
+const safeVariableName = (name) =>
 	camelCase(
 		removeScope(name)
 			.toLowerCase()
@@ -348,7 +349,7 @@ async function getInput({ entries, cwd, source, module }) {
 			entries && entries.length
 				? entries
 				: (source &&
-						(Array.isArray(source) ? source : [source]).map(file =>
+						(Array.isArray(source) ? source : [source]).map((file) =>
 							resolve(cwd, file),
 						)) ||
 						((await isDir(resolve(cwd, 'src'))) &&
@@ -356,8 +357,8 @@ async function getInput({ entries, cwd, source, module }) {
 						(await jsOrTs(cwd, 'index')) ||
 						module,
 		)
-		.map(file => glob(file))
-		.forEach(file => input.push(...file));
+		.map((file) => glob(file))
+		.forEach((file) => input.push(...file));
 
 	return input;
 }
@@ -372,7 +373,7 @@ async function getOutput({ cwd, output, pkgMain, pkgName }) {
 
 async function getEntries({ input, cwd }) {
 	let entries = (
-		await map([].concat(input), async file => {
+		await map([].concat(input), async (file) => {
 			file = resolve(cwd, file);
 			if (await isDir(file)) {
 				file = resolve(file, 'index.js');
@@ -390,7 +391,7 @@ function createConfig(options, entry, format, writeMeta) {
 	let { pkg } = options;
 
 	let external = ['dns', 'fs', 'path', 'url'].concat(
-		options.entries.filter(e => e !== entry),
+		options.entries.filter((e) => e !== entry),
 	);
 
 	let outputAliases = {};
@@ -480,7 +481,7 @@ function createConfig(options, entry, format, writeMeta) {
 
 	const externalPredicate = new RegExp(`^(${external.join('|')})($|/)`);
 	const externalTest =
-		external.length === 0 ? id => false : id => externalPredicate.test(id);
+		external.length === 0 ? (id) => false : (id) => externalPredicate.test(id);
 
 	function loadNameCache() {
 		try {
@@ -504,7 +505,7 @@ function createConfig(options, entry, format, writeMeta) {
 	let config = {
 		inputOptions: {
 			input: entry,
-			external: id => {
+			external: (id) => {
 				if (id === 'babel-plugin-transform-async-to-promises/helpers') {
 					return false;
 				}
@@ -548,17 +549,17 @@ function createConfig(options, entry, format, writeMeta) {
 						include: /\/node_modules\//,
 					}),
 					json(),
-					smartAsset({
-						url: 'copy',
-						useHash: true,
-						keepName: true,
-						keepImport: true,
-					}),
-					svgr(),
+					options.static !== false &&
+						smartAsset({
+							url: 'inline',
+							extensions: ['.svg', '.gif', '.png', '.jpg', '.ttf'],
+							maxSize: 8192,
+						}),
+					// svgr(),
 					{
 						// We have to remove shebang so it doesn't end up in the middle of the code somewhere
-						transform: code => ({
-							code: code.replace(/^#![^\n]*/, bang => {
+						transform: (code) => ({
+							code: code.replace(/^#![^\n]*/, (bang) => {
 								shebang[options.name] = bang;
 							}),
 							map: null,
@@ -573,8 +574,12 @@ function createConfig(options, entry, format, writeMeta) {
 								compilerOptions: {
 									sourceMap: options.sourcemap,
 									declaration: true,
-									jsx: 'react',
-									jsxFactory: options.jsx || 'React.createElement',
+									allowJs: true,
+									emitDeclarationOnly: options.generateTypes && !useTypescript,
+									...(options.generateTypes !== false && {
+										declarationDir: getDeclarationDir({ options, pkg }),
+									}),
+									jsx: 'preserve',
 								},
 							},
 							tsconfig: options.tsconfig,
@@ -610,6 +615,7 @@ function createConfig(options, entry, format, writeMeta) {
 							pragma: options.jsx || 'React.createElement',
 							pragmaFrag: options.jsxFragment || 'Fragment',
 							typescript: !!useTypescript,
+							jsxImportSource: options.jsxImportSource || false,
 						},
 					}),
 					options.compress !== false && [
@@ -654,12 +660,12 @@ function createConfig(options, entry, format, writeMeta) {
 					{
 						writeBundle(bundle) {
 							config._sizeInfo = Promise.all(
-								Object.values(bundle).map(({ code, fileName }) => {
-									if (code) {
-										return getSizeInfo(code, fileName, options.raw);
+								Object.values(bundle).map((e) => {
+									if (e && e.code) {
+										return getSizeInfo(e.code, e.fileName, options.raw);
 									}
 								}),
-							).then(results => results.filter(Boolean).join('\n'));
+							).then((results) => results.filter(Boolean).join('\n'));
 						},
 					},
 				)
@@ -741,4 +747,19 @@ function processCssmodulesArgument(options) {
 		return null;
 
 	return options['css-modules'];
+}
+
+function getDeclarationDir({ options, pkg }) {
+	const { cwd, output } = options;
+
+	let result = output;
+
+	if (pkg.types || pkg.typings) {
+		result = pkg.types || pkg.typings;
+		result = resolve(cwd, result);
+	}
+
+	result = dirname(result);
+
+	return result;
 }
